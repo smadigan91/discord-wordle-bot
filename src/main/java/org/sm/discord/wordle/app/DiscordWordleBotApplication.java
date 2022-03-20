@@ -1,4 +1,4 @@
-package org.sm.discord.discordwordlebot;
+package org.sm.discord.wordle;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
