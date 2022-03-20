@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+    <changeSet id="problem-init" author="Sean">
+        <preConditions>
+            <not>
+                <tableExists tableName="PROBLEM"/>
+            </not>
+        </preConditions>
+        <createTable tableName="PROBLEM">
+            <column name="ID" type="SMALLINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PROBLEM_PK"/>
+            </column>
+            <column name="SOLUTION" type="VARCHAR(5)"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

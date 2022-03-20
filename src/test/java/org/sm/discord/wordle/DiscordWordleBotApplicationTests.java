@@ -1,4 +1,4 @@
-package org.sm.discord.discordwordlebot;
+package org.sm.discord.wordle;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

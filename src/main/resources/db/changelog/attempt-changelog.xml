@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+    <changeSet id="attempt-init" author="Sean">
+        <preConditions>
+            <not>
+                <tableExists tableName="ATTEMPT"/>
+            </not>
+        </preConditions>
+        <createTable tableName="ATTEMPT">
+            <column name="ID" type="INTEGER">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="SCORE_PK"/>
+            </column>
+            <column name="USERNAME" type="VARCHAR(100)">
+                <constraints foreignKeyName="ATTEMPT_USER_FK" references="DISCORD_USER(USERNAME)" deleteCascade="true"/>
+            </column>
+            <column name="PROBLEM_ID" type="SMALLINT">
+                <constraints foreignKeyName="ATTEMPT_PROBLEM_FK" references="PROBLEM(ID)"/>
+            </column>
+            <column name="GUESSES" type="VARCHAR(100)"/>
+            <column name="SCORE" type="SMALLINT"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
