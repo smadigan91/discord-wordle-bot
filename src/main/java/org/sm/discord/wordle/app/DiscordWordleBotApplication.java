@@ -1,17 +1,14 @@
 package org.sm.discord.wordle.app;
 
-import org.sm.discord.wordle.configuration.DiscordBotConfiguration;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 
 import java.util.Arrays;
 
-@SpringBootApplication
-@Import(DiscordBotConfiguration.class)
+@SpringBootApplication(scanBasePackages = "org.sm.discord.wordle")
 public class DiscordWordleBotApplication {
 
     public static void main(String[] args) {
