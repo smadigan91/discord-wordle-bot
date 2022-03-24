@@ -12,18 +12,18 @@ public class Attempt {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "username")
+    @JoinColumn(name = "user_id")
     private DiscordUser user;
 
     @ManyToOne
     @JoinColumn(name = "problem_id")
     private Problem problem;
 
-    @Column(name = "guesses", length = 100)
-    private String guesses;
+    @Column(name = "num_guesses")
+    private Integer numGuesses;
 
     @Column(name = "score")
-    private Integer score;
+    private Double score;
 
     public Long getId() {
         return id;
@@ -49,19 +49,19 @@ public class Attempt {
         this.problem = problem;
     }
 
-    public String getGuesses() {
-        return guesses;
+    public Integer getNumGuesses() {
+        return numGuesses;
     }
 
-    public void setGuesses(String guesses) {
-        this.guesses = guesses;
+    public void setNumGuesses(Integer guesses) {
+        this.numGuesses = guesses;
     }
 
-    public Integer getScore() {
+    public Double getScore() {
         return score;
     }
 
-    public void setScore(Integer score) {
+    public void setScore(Double score) {
         this.score = score;
     }
 }

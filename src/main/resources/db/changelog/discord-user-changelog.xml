@@ -11,9 +11,14 @@
             </not>
         </preConditions>
         <createTable tableName="DISCORD_USER">
-            <column name="USERNAME" type="VARCHAR(100)">
+            <column name="ID" type="VARCHAR(100)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="DISCORD_USER_PK"/>
             </column>
+            <column name="TOTAL_ATTEMPTS" type="SMALLINT"/>
+            <column name="TOTAL_GUESSES" type="SMALLINT"/>
+            <column name="TOTAL_SCORE" type="DECIMAL"/>
+            <column name="AVG_GUESSES" type="DECIMAL"/>
+            <column name="AVG_SCORE" type="DECIMAL"/>
         </createTable>
     </changeSet>
 </databaseChangeLog>

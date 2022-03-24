@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
     <changeSet id="problem-init" author="Sean">
@@ -11,10 +11,15 @@
             </not>
         </preConditions>
         <createTable tableName="PROBLEM">
-            <column name="ID" type="SMALLINT">
+            <column name="ID" type="VARCHAR(5)">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="PROBLEM_PK"/>
             </column>
             <column name="SOLUTION" type="VARCHAR(5)"/>
+            <column name="TOTAL_ATTEMPTS" type="SMALLINT"/>
+            <column name="TOTAL_GUESSES" type="SMALLINT"/>
+            <column name="TOTAL_SCORE" type="DECIMAL"/>
+            <column name="AVG_GUESSES" type="DECIMAL"/>
+            <column name="AVG_SCORE" type="DECIMAL"/>
         </createTable>
     </changeSet>
 </databaseChangeLog>

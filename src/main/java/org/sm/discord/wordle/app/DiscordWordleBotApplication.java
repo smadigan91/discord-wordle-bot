@@ -1,14 +1,20 @@
 package org.sm.discord.wordle.app;
 
+import org.sm.discord.wordle.bot.service.WordleBotService;
+import org.sm.discord.wordle.bot.util.WordleUtil;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-import java.util.Arrays;
+import java.util.Map;
 
 @SpringBootApplication(scanBasePackages = "org.sm.discord.wordle")
+@EnableJpaRepositories("org.sm.discord.wordle.persistence.repository")
+@EntityScan("org.sm.discord.wordle.persistence.entity")
 public class DiscordWordleBotApplication {
 
     public static void main(String[] args) {
@@ -16,14 +22,12 @@ public class DiscordWordleBotApplication {
     }
 
     @Bean
-    public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
+    public CommandLineRunner commandLineRunner(ApplicationContext ctx, WordleBotService bot) {
         return args -> {
-            System.out.println("Let's inspect the beans provided by Spring Boot:");
-            String[] beanNames = ctx.getBeanDefinitionNames();
-            Arrays.sort(beanNames);
-            for (String beanName : beanNames) {
-                System.out.println(beanName);
-            }
+            Map<String, String> pastSolutions = WordleUtil.getAnswerIndex();
+            pastSolutions.forEach((k, v) -> {
+                System.out.println("" + k + ":" + v);
+            });
         };
     }
 }

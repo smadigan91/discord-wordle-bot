@@ -14,14 +14,14 @@
             <column name="ID" type="INTEGER">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="SCORE_PK"/>
             </column>
-            <column name="USERNAME" type="VARCHAR(100)">
-                <constraints foreignKeyName="ATTEMPT_USER_FK" references="DISCORD_USER(USERNAME)" deleteCascade="true"/>
+            <column name="USER_ID" type="VARCHAR(50)">
+                <constraints foreignKeyName="ATTEMPT_USER_FK" references="DISCORD_USER(ID)" deleteCascade="true"/>
             </column>
-            <column name="PROBLEM_ID" type="SMALLINT">
+            <column name="PROBLEM_ID" type="VARCHAR(5)">
                 <constraints foreignKeyName="ATTEMPT_PROBLEM_FK" references="PROBLEM(ID)"/>
             </column>
-            <column name="GUESSES" type="VARCHAR(100)"/>
-            <column name="SCORE" type="SMALLINT"/>
+            <column name="NUM_GUESSES" type="SMALLINT"/>
+            <column name="SCORE" type="DECIMAL"/>
         </createTable>
     </changeSet>
 </databaseChangeLog>
