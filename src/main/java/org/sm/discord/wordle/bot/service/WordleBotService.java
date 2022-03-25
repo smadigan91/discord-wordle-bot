@@ -7,29 +7,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sm.discord.wordle.bot.util.DiscordConstants;
 import org.sm.discord.wordle.bot.util.WordleUtil;
+import org.sm.discord.wordle.persistence.entity.Attempt;
+import org.sm.discord.wordle.persistence.entity.DiscordUser;
+import org.sm.discord.wordle.persistence.entity.Problem;
 import org.sm.discord.wordle.persistence.repository.AttemptRepository;
 import org.sm.discord.wordle.persistence.repository.DiscordUserRepository;
 import org.sm.discord.wordle.persistence.repository.ProblemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 
 @Service("wordleBotService")
+@Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class WordleBotService {
 
     private static final Logger logger = LoggerFactory.getLogger(WordleBotService.class);
 
     private final JDA discordBot;
 
-    private DiscordUserRepository userRepo;
+    private final DiscordUserRepository userRepo;
 
-    private ProblemRepository problemRepo;
+    private final ProblemRepository problemRepo;
 
-    private AttemptRepository attemptRepo;
+    private final AttemptRepository attemptRepo;
+
+    private Map<String, String> problemSolutions;
 
     @Autowired
     public WordleBotService(JDA discordBot, DiscordUserRepository userRepo,
@@ -40,8 +49,9 @@ public class WordleBotService {
         this.attemptRepo = attemptRepo;
     }
 
-    public void init() throws IOException {
-        Map<String, String> wordleIndex = WordleUtil.getAnswerIndex();
+    @Transactional
+    public void indexHistory() throws IOException {
+        Map<String, String> wordleIndex = problemSolutions = WordleUtil.getAnswerIndex();
         int startingProblemId = 200;
         for (String problemId : wordleIndex.keySet()) {
             // only need to worry about problems we haven't indexed yet
@@ -50,76 +60,113 @@ public class WordleBotService {
                 break;
             }
         }
+        // if the last indexed problem falls outside of the range of messages in #wordle, index #spam too
+        // otherwise just index #wordle
         if (startingProblemId < WordleUtil.FIRST_WORDLE_CHANNEL_PROBLEM_ID) {
-            // we need to look at messages in spam too
-            // then wordle stuff
             indexSpamHistory();
             indexWordleHistory();
         } else {
-            //just the wordle stuff
             indexWordleHistory();
         }
     }
 
-    public void indexSpamHistory() {
+    @Transactional
+    public void updateProblemSolutions() throws IOException {
+        List<Problem> solutionlessProblems = problemRepo.findBySolutionIsNull();
+        if (!solutionlessProblems.isEmpty()) {
+            problemSolutions = WordleUtil.getAnswerIndex();
+            for (Problem problem : solutionlessProblems) {
+                String problemId = problem.getId();
+                if (problemSolutions.containsKey(problemId)) {
+                    problem.setSolution(problemSolutions.get(problemId));
+                } else {
+                    logger.info("No solution found for problem " + problemId);
+                }
+            }
+        }
+
+    }
+
+    @Transactional
+    private void saveUserAttempt(Attempt attempt, String userId) {
+        Optional<DiscordUser> userResult;
+        DiscordUser user;
+        if ((userResult = userRepo.findById(userId)).isPresent()) {
+            user = userResult.get();
+            user.addAttempt(attempt);
+        } else {
+            user = new DiscordUser(userId);
+            user = userRepo.save(user);
+            user.addAttempt(attempt);
+        }
+    }
+
+    @Transactional
+    private void saveProblemAttempt(Attempt attempt, String problemId) {
+        Optional<Problem> problemResult;
+        Problem problem;
+        if ((problemResult = problemRepo.findById(problemId)).isPresent()) {
+            problem = problemResult.get();
+            problem.addAttempt(attempt);
+        } else {
+            problem = new Problem(problemId);
+            problem = problemRepo.save(problem);
+            problem.addAttempt(attempt);
+        }
+        // if the problem has no solution and we've indexed the available solutions already, set the solution
+        if (problem.getSolution() == null) {
+            if (problemSolutions != null && problemSolutions.containsKey(problemId)) {
+                String solution = problemSolutions.get(problemId);
+                problem.setSolution(solution);
+            }
+        }
+    }
+
+    @Transactional
+    public void indexNewDiscordMessage(Message message, String problemId) {
+        String userId = message.getAuthor().getName();
+        String messageContent = message.getContentRaw();
+        List<List<String>> wordleGuesses = WordleUtil.getWordleGuesses(messageContent);
+        int numGuesses = wordleGuesses.size();
+        double score = WordleUtil.getWordleScore(wordleGuesses);
+        Attempt attempt = new Attempt(numGuesses, score);
+        saveUserAttempt(attempt, userId);
+        saveProblemAttempt(attempt, problemId);
+    }
+
+    @Transactional
+    private void indexPastDiscordMessage(Message message) {
+        String problemId;
+        String userId = message.getAuthor().getName();
+        String messageContent = message.getContentRaw();
+        if (!messageContent.isEmpty()) {
+            if ((problemId = WordleUtil.getProblemId(messageContent)) != null) {
+                List<List<String>> wordleGuesses = WordleUtil.getWordleGuesses(messageContent);
+                int numGuesses = wordleGuesses.size();
+                double score = WordleUtil.getWordleScore(wordleGuesses);
+                Attempt attempt = new Attempt(numGuesses, score);
+                saveUserAttempt(attempt, userId);
+                saveProblemAttempt(attempt, problemId);
+            }
+        }
+    }
+
+    @Transactional
+    private void indexSpamHistory() {
         TextChannel spam = discordBot.getTextChannelById(DiscordConstants.SPAM_CHANNEL_ID);
         if (spam != null) {
-            spam.getHistoryAfter(DiscordConstants.FIRST_SPAM_WORDLE_BLOCK_MESSAGE_ID, 100).queue(result -> {
-                result.getRetrievedHistory().forEach(message -> {
-                    //need some transactional method that acts on the message I can call here
-                });
-            });
-            spam.getHistoryAfter(DiscordConstants.SECOND_SPAM_WORDLE_BLOCK_MESSAGE_ID, 15).queue(result -> {
-                result.getRetrievedHistory().forEach(message -> {
-                    //need some transactional method that acts on the message I can call here
-                });
-            });
+            spam.getHistoryAfter(DiscordConstants.FIRST_SPAM_WORDLE_BLOCK_MESSAGE_ID, 100).complete()
+                    .getRetrievedHistory().forEach(this::indexPastDiscordMessage);
+            spam.getHistoryAfter(DiscordConstants.SECOND_SPAM_WORDLE_BLOCK_MESSAGE_ID, 15).complete()
+                    .getRetrievedHistory().forEach(this::indexPastDiscordMessage);
         }
     }
 
-    public void indexWordleHistory() {
+    @Transactional
+    private void indexWordleHistory() {
         TextChannel wordle = discordBot.getTextChannelById(DiscordConstants.WORDLE_CHANNEL_ID);
-        Set<String> problems = new HashSet<>();
         if (wordle != null) {
-            wordle.getIterableHistory().forEach(message -> {
-                String messageContent = message.getContentRaw();
-                String problemNumber = WordleUtil.getWordleNumber(messageContent);
-                if (problemNumber != null) {
-                    problems.add(problemNumber);
-                }
-            });
-            problems.forEach(s -> {
-                logger.info("Processed Wordle " + s);
-            });
-        }
-    }
-
-    public void getWordleHistory() {
-        TextChannel wordle = discordBot.getTextChannelById(DiscordConstants.WORDLE_CHANNEL_ID);
-        Set<String> problems = new HashSet<>();
-        if (wordle != null) {
-            wordle.getIterableHistory().forEach(message -> {
-                String messageContent = message.getContentRaw();
-                String problemNumber = WordleUtil.getWordleNumber(messageContent);
-                if (problemNumber != null) {
-                    problems.add(problemNumber);
-                }
-            });
-            problems.forEach(s -> {
-                logger.info("Processed Wordle " + s);
-            });
-        }
-    }
-
-    public void getSpamHistory() {
-        TextChannel spam = discordBot.getTextChannelById(DiscordConstants.SPAM_CHANNEL_ID);
-        if (spam != null) {
-            spam.getHistoryAfter(DiscordConstants.FIRST_SPAM_WORDLE_BLOCK_MESSAGE_ID, 100).queue(result -> {
-                Message firstWordleMessage = result.getMessageById(DiscordConstants.FIRST_SPAM_WORDLE_MESSAGE_ID);
-            });
-            spam.getHistoryAfter(DiscordConstants.SECOND_SPAM_WORDLE_BLOCK_MESSAGE_ID, 15).queue(result -> {
-                Message lastWordleMessage = result.getMessageById(DiscordConstants.LAST_SPAM_WORDLE_MESSAGE_ID);
-            });
+            wordle.getIterableHistory().forEach(this::indexPastDiscordMessage);
         }
     }
 }

@@ -11,7 +11,7 @@
             </not>
         </preConditions>
         <createTable tableName="ATTEMPT">
-            <column name="ID" type="INTEGER">
+            <column name="ID" autoIncrement="true" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="SCORE_PK"/>
             </column>
             <column name="USER_ID" type="VARCHAR(50)">

@@ -6,8 +6,7 @@ import javax.persistence.*;
 @Table(name = "attempt")
 public class Attempt {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "attempt_seq")
-    @SequenceGenerator(name = "attempt_seq")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
@@ -20,10 +19,18 @@ public class Attempt {
     private Problem problem;
 
     @Column(name = "num_guesses")
-    private Integer numGuesses;
+    private Integer numGuesses = 0;
 
     @Column(name = "score")
-    private Double score;
+    private Double score = 0.0;
+
+    public Attempt() {
+    }
+
+    public Attempt(Integer numGuesses, Double score) {
+        this.numGuesses = numGuesses;
+        this.score = score;
+    }
 
     public Long getId() {
         return id;

@@ -5,7 +5,7 @@ import org.apache.commons.math3.util.Precision;
 import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
-import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 
 @MappedSuperclass
 public class CalculableEntity {
@@ -15,30 +15,37 @@ public class CalculableEntity {
     private String id;
 
     @Column(name = "total_attempts")
-    private Integer totalAttempts;
+    private Integer totalAttempts = 0;
 
     @Column(name = "total_guesses")
-    private Integer totalGuesses;
+    private Integer totalGuesses = 0;
 
     @Column(name = "total_score")
-    private Double totalScore;
+    private Double totalScore = 0.0;
 
     @Column(name = "avg_guesses")
-    private Double averageGuesses;
+    private Double averageGuesses = 0.0;
 
     @Column(name = "avg_score")
-    private Double averageScore;
+    private Double averageScore = 0.0;
 
-    @PrePersist
+    public CalculableEntity() {
+    }
+
+    public CalculableEntity(String id) {
+        this.id = id;
+    }
+
+    @PreUpdate
     private void calculateAverages() {
         this.averageGuesses = Precision.round((this.totalGuesses / (double) this.totalAttempts), 2);
-        this.averageScore = Precision.round((this.totalScore / this.averageScore), 2);
+        this.averageScore = Precision.round((this.totalScore / this.totalAttempts), 2);
     }
 
     public void addAttempt(Attempt attempt) {
         this.totalAttempts += 1;
         this.totalGuesses += attempt.getNumGuesses();
-        this.totalScore = this.totalScore + attempt.getScore();
+        this.totalScore += attempt.getScore();
     }
 
     public String getId() {

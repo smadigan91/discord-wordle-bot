@@ -30,7 +30,7 @@ public class WordleUtil {
     public static final Integer FIRST_DISCORD_WORDLE_PROBLEM_ID = 200;
     public static final Integer FIRST_WORDLE_CHANNEL_PROBLEM_ID = 206;
 
-    public static String getWordleNumber(String wordleMessage) {
+    public static String getProblemId(String wordleMessage) {
         Matcher matcher = WORDLE_REGEX.matcher(wordleMessage);
         if (matcher.find()) {
             String matched = matcher.group();
@@ -52,33 +52,6 @@ public class WordleUtil {
             }
         }
         return guesses;
-    }
-
-    /**
-     * Black is 0 points
-     * Yellow is 1 point
-     * Green is 2 points
-     */
-    public static WordleRow getWordleRow(@NotNull List<String> row) {
-        if (row.size() < 5) {
-            throw new InvalidWordleScoreException("Malformed wordle row, unable to process score");
-        }
-        int points, numBlack, numYellow, numGreen;
-        points = numBlack = numYellow = numGreen = 0;
-        for (String square : row) {
-            switch (square) {
-                case BLACK_SQUARE, WHITE_SQUARE -> numBlack += 1;
-                case YELLOW_SQUARE -> {
-                    points += 1;
-                    numYellow += 1;
-                }
-                case GREEN_SQUARE -> {
-                    points += 2;
-                    numGreen += 1;
-                }
-            }
-        }
-        return new WordleRow(numBlack, numYellow, numGreen, points);
     }
 
     /**
@@ -121,25 +94,10 @@ public class WordleUtil {
         return Precision.round(totalScore, 2);
     }
 
-    public static String getSingleAnswer(String problemNumber) throws IOException {
-        Document doc = Jsoup.connect(WordleUtil.WORDLE_SOLUTION_URL).get();
-        Elements resultList = doc.getElementsMatchingOwnText("#" + problemNumber);
-        String solution;
-        if (!resultList.isEmpty()) {
-            Element answerElement = (Element) resultList.get(0).parentNode();
-            if (answerElement != null) {
-                String[] answerElementText = answerElement.text().split(" ");
-                solution = answerElementText[answerElementText.length - 1];
-                return solution;
-            }
-        }
-        return null;
-    }
-
     public static Map<String, String> getAnswerIndex() throws IOException {
         Document doc = Jsoup.connect(WordleUtil.WORDLE_SOLUTION_URL).get();
         Elements strongElements = doc.select("strong");
-        // this will create a map of problemNumber:solution, trust me lol
+        // this will create a map of problemId:solution, trust me lol
         Map<String, String> resultMap = strongElements.stream()
                 .filter(element -> (element.text().contains("- #") && element.hasParent()))
                 .map(element -> {
@@ -150,6 +108,33 @@ public class WordleUtil {
         resultMap = new TreeMap<>(resultMap);
         resultMap.keySet().removeIf(key -> Integer.parseInt(key) < FIRST_DISCORD_WORDLE_PROBLEM_ID);
         return resultMap;
+    }
+
+    /**
+     * Black is 0 points
+     * Yellow is 1 point
+     * Green is 2 points
+     */
+    private static WordleRow getWordleRow(@NotNull List<String> row) {
+        if (row.size() < 5) {
+            throw new InvalidWordleScoreException("Malformed wordle row, unable to process score");
+        }
+        int points, numBlack, numYellow, numGreen;
+        points = numBlack = numYellow = numGreen = 0;
+        for (String square : row) {
+            switch (square) {
+                case BLACK_SQUARE, WHITE_SQUARE -> numBlack += 1;
+                case YELLOW_SQUARE -> {
+                    points += 1;
+                    numYellow += 1;
+                }
+                case GREEN_SQUARE -> {
+                    points += 2;
+                    numGreen += 1;
+                }
+            }
+        }
+        return new WordleRow(numBlack, numYellow, numGreen, points);
     }
 
     private static class WordleRow {
