@@ -119,11 +119,10 @@ public class WordleUtil {
         if (row.size() < 5) {
             throw new InvalidWordleScoreException("Malformed wordle row, unable to process score");
         }
-        int points, numBlack, numYellow, numGreen;
-        points = numBlack = numYellow = numGreen = 0;
+        int points, numYellow, numGreen;
+        points = numYellow = numGreen = 0;
         for (String square : row) {
             switch (square) {
-                case BLACK_SQUARE, WHITE_SQUARE -> numBlack += 1;
                 case YELLOW_SQUARE -> {
                     points += 1;
                     numYellow += 1;
@@ -134,53 +133,21 @@ public class WordleUtil {
                 }
             }
         }
-        return new WordleRow(numBlack, numYellow, numGreen, points);
+        return new WordleRow(numYellow, numGreen, points);
     }
 
-    private static class WordleRow {
-
-        private int numBlack;
-        private int numYellow;
-        private int numGreen;
-        private int points;
-
-        public WordleRow(int numBlack, int numYellow, int numGreen, int points) {
-            this.numBlack = numBlack;
-            this.numYellow = numYellow;
-            this.numGreen = numGreen;
-            this.points = points;
-        }
-
-        public int getNumBlack() {
-            return numBlack;
-        }
-
-        public void setNumBlack(int numBlack) {
-            this.numBlack = numBlack;
-        }
+    private record WordleRow(int numYellow, int numGreen, int points) {
 
         public int getNumYellow() {
             return numYellow;
-        }
-
-        public void setNumYellow(int numYellow) {
-            this.numYellow = numYellow;
         }
 
         public int getNumGreen() {
             return numGreen;
         }
 
-        public void setNumGreen(int numGreen) {
-            this.numGreen = numGreen;
-        }
-
         public int getPoints() {
             return points;
-        }
-
-        public void setPoints(int points) {
-            this.points = points;
         }
     }
 }

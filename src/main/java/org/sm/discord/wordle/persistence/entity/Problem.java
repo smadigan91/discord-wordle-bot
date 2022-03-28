@@ -8,7 +8,7 @@ import java.util.List;
 @Table(name = "problem")
 public class Problem extends CalculableEntity {
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "problem", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "problem")
     private List<Attempt> attempts = new ArrayList<>();
 
     @Column(name = "solution", length = 5)
