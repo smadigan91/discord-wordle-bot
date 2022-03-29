@@ -1,6 +1,5 @@
 package org.sm.discord.wordle.bot.service;
 
-import net.dv8tion.jda.api.JDA;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sm.discord.wordle.persistence.repository.AttemptRepository;
@@ -28,7 +27,7 @@ public class WordleStatsService {
     private Map<String, String> problemSolutions;
 
     @Autowired
-    public WordleStatsService(JDA discordBot, DiscordUserRepository userRepo,
+    public WordleStatsService(DiscordUserRepository userRepo,
                               ProblemRepository problemRepo, AttemptRepository attemptRepo) {
         this.userRepo = userRepo;
         this.problemRepo = problemRepo;
