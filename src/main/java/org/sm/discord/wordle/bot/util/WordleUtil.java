@@ -21,13 +21,11 @@ import java.util.stream.Collectors;
 public class WordleUtil {
 
     public static final String BLACK_SQUARE = "⬛";
-    public static final String WHITE_SQUARE = "⬜";
     public static final String GREEN_SQUARE = "🟩";
     public static final String YELLOW_SQUARE = "\uD83D\uDFE8";
     public static final Pattern WORDLE_REGEX = Pattern.compile("(?=[Ww]ordle)(?=.*/6).*");
     public static final Pattern WORDLE_EMOJI_REGEX = Pattern.compile(BLACK_SQUARE + "|" + GREEN_SQUARE + "|" + YELLOW_SQUARE);
     public static final String WORDLE_SOLUTION_URL = "https://progameguides.com/wordle/all-wordle-answers-in-2022-updated-daily/";
-    public static final Integer FIRST_DISCORD_WORDLE_PROBLEM_ID = 200;
     public static final Integer FIRST_WORDLE_CHANNEL_PROBLEM_ID = 206;
 
     public static String getProblemId(String wordleMessage) {
@@ -99,14 +97,13 @@ public class WordleUtil {
         Elements strongElements = doc.select("strong");
         // this will create a map of problemId:solution, trust me lol
         Map<String, String> resultMap = strongElements.stream()
-                .filter(element -> (element.text().contains("- #") && element.hasParent()))
+                .filter(element -> (element.text().contains("#") && element.hasParent()))
                 .map(element -> {
                     element = (Element) element.parentNode();
                     return element.text().split(" ");
                 })
                 .collect(Collectors.toMap(k -> StringUtils.substringBetween(k[k.length - 2], "#", ":"), v -> v[v.length - 1]));
         resultMap = new TreeMap<>(resultMap);
-        resultMap.keySet().removeIf(key -> Integer.parseInt(key) < FIRST_DISCORD_WORDLE_PROBLEM_ID);
         return resultMap;
     }
 

@@ -2,7 +2,7 @@ package org.sm.discord.wordle.app;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sm.discord.wordle.bot.service.WordleBotService;
+import org.sm.discord.wordle.bot.service.WordleMessageService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,7 +23,7 @@ public class DiscordWordleBotApplication {
     }
 
     @Bean
-    public CommandLineRunner commandLineRunner(ApplicationContext ctx, WordleBotService bot) {
+    public CommandLineRunner commandLineRunner(ApplicationContext ctx, WordleMessageService bot) {
         return args -> {
             logger.info("Indexing history...");
             bot.indexHistory();
