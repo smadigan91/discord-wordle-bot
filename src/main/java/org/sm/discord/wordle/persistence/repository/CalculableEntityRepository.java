@@ -17,4 +17,6 @@ public interface CalculableEntityRepository<T extends CalculableEntity> extends 
 
     List<T> findAllByOrderByTotalGuessesDesc();
 
+    List<T> findAllByOrderByTotalScoreDesc();
+
 }

@@ -16,9 +16,9 @@ public class WordleMessageListener extends ListenerAdapter {
 
     private final WordleMessageService botService;
 
-    public WordleMessageListener(WordleMessageService botService) {
+    public WordleMessageListener(WordleMessageService msgService) {
         super();
-        this.botService = botService;
+        this.botService = msgService;
     }
 
     @Override
